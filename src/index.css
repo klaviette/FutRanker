@@ -169,6 +169,29 @@ h1{
   transition: transform .25s ease;
   flex-shrink:0;
 }
+.drag-handle {
+  display: inline-block;
+  width: 12px;
+  height: 18px;
+  cursor: grab;
+  background-image: radial-gradient(circle, var(--chalk-faint) 1.5px, transparent 1.5px);
+  background-size: 6px 6px;
+  background-repeat: repeat;
+}
+.arrow-up {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 8px solid var(--amber);
+}
+.arrow-down {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 8px solid var(--amber);
+}
 .group.is-open .chev{ transform: rotate(45deg); }
 .group-count{
   font-family: 'IBM Plex Mono', monospace;
@@ -265,7 +288,7 @@ input[type="range"]::-moz-range-thumb{
 }
 .rank-row:nth-child(1) .rank-num, .rank-row:nth-child(1) .rank-name{ color: var(--amber-2); }
 
-.rank-main{ flex:1; min-width: 0; }
+.rank-main{ flex:1; min-width: 0; cursor: grab;}
 .rank-name{ font-size: 15px; font-weight: 600; letter-spacing: 0.01em; }
 
 .breakdown{
@@ -318,5 +341,5 @@ input[type="range"]::-moz-range-thumb{
   flex-shrink:0; font-family: 'IBM Plex Mono', monospace;
   transition: border-color .15s, color .15s, transform .15s;
 }
-.rank-toggle:hover{ border-color: var(--amber); color: var(--amber-2); }
-.rank-toggle.open{ transform: rotate(45deg); }
+.rank-toggle:hover{ border-color: var(--amber); color: var(--amber-2);}
+.rank-toggle.open{ transform: rotate(0deg); color: var(--chalk-faint); }

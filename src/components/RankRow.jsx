@@ -6,6 +6,7 @@ export default function RankRow({ player, rank }) {
 
   return (
     <li className="rank-row" style={{ animationDelay: `${(rank - 1) * 30}ms` }}>
+      <span className="drag-handle"></span>
       <div className="rank-num">{rank}</div>
       <div className="rank-main">
         <div className="rank-name">{player.name}</div>
@@ -30,7 +31,7 @@ export default function RankRow({ player, rank }) {
         type="button"
         onClick={() => setIsOpen(v => !v)}
       >
-        +
+        i
       </button>
     </li>
   )
