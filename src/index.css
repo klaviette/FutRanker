@@ -174,9 +174,17 @@ h1{
   width: 12px;
   height: 18px;
   cursor: grab;
+  touch-action: none;
   background-image: radial-gradient(circle, var(--chalk-faint) 1.5px, transparent 1.5px);
   background-size: 6px 6px;
   background-repeat: repeat;
+}
+.drag-handle:active{ cursor: grabbing; }
+.rank-row--dragging{
+  min-height: 46px;
+  background: rgba(242,239,230,0.02);
+  border: 1px dashed var(--border);
+  
 }
 .arrow-up {
   width: 0;
@@ -277,6 +285,7 @@ input[type="range"]::-moz-range-thumb{
   background: rgba(242,239,230,0.045);
   transform: translateX(2px);
 }
+.rank-row--dragging{ background: transparent; border: transparent; }
 @keyframes rowIn{
   from{ opacity: 0; transform: translateY(6px); }
   to{ opacity: 1; transform: translateY(0); }
@@ -288,7 +297,7 @@ input[type="range"]::-moz-range-thumb{
 }
 .rank-row:nth-child(1) .rank-num, .rank-row:nth-child(1) .rank-name{ color: var(--amber-2); }
 
-.rank-main{ flex:1; min-width: 0; cursor: grab;}
+.rank-main{ flex:1; min-width: 0;}
 .rank-name{ font-size: 15px; font-weight: 600; letter-spacing: 0.01em; }
 
 .breakdown{
@@ -313,12 +322,18 @@ input[type="range"]::-moz-range-thumb{
 .breakdown-grid span.v{ color: var(--chalk); text-align: right; }
 .breakdown-row{ display:flex; justify-content: space-between; gap: 8px; }
 
+@property --pct {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
 .gauge{
-  --pct: 0;
   width: 46px; height: 46px;
   border-radius: 50%;
   flex-shrink: 0;
   background: conic-gradient(var(--amber) calc(var(--pct) * 1%), rgba(242,239,230,0.08) 0);
+  transition: --pct 0.25s ease;
   display: flex; align-items:center; justify-content:center;
   position: relative;
 }

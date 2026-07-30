@@ -24,8 +24,7 @@ export default function App() {
           <p className="eyebrow">Weighted Ranking Engine</p>
           <h1>The GOAT Calculator</h1>
           <p className="sub">
-            Slide each accolade to how much it should count. The board recalculates your top 10 in
-            real time from a built-in pool of legends, weighted by your priorities.
+            World Cup overrated? Ballon d'Or overhyped? Find out who your GOAT is based on the awards and accolades you value. 
           </p>
         </div>
       </header>
