@@ -5,6 +5,7 @@ import { scorePlayer, computeMaxes } from './utils/scoring'
 import WeightPanel from './components/WeightPanel'
 import RankPanel from './components/RankPanel'
 import DisclaimerPanel from './components/DisclaimerPanel'
+import logo from './assets/GoatCalcLogo.png'
 
 const DATA_URL = 'https://klaviette.github.io/futrankerdata/greatest_players_full.json'
 
@@ -55,7 +56,7 @@ export default function App() {
     <div className="wrap">
       <header>
         <div className="heading-block">
-          <img src="/GoatCalcLogo.png" alt="GOAT Calculator logo" className="header-logo" />
+          <img src={logo} alt="GOAT Calculator logo" className="header-logo" />
           <p className="eyebrow">Weighted Ranking Tool</p>
           <h1>The GOAT Calculator</h1>
           <p className="sub">
