@@ -2,15 +2,12 @@ import { useState } from 'react'
 import { CATEGORIES, GROUP_ORDER } from '../data/categories'
 import { PRESETS } from '../data/presets'
 
-const NOTE = `Each category is scored 0–100 relative to the best in the pool, then multiplied by your \
-weight (0–10) and summed. Set a weight to 0 to ignore a category entirely. Trophy/goal figures are \
-career totals as commonly reported and rounded. Assist totals are the least reliable numbers here — \
-assists weren't officially tracked for most of football history, especially pre-1990s players, so treat \
-those as rough illustrative estimates rather than record. Puskás Award (started 2009) is only confidently \
-credited to three players in this pool: Ronaldo (2009), Neymar (2011), and Messi (2015). Club World Cup \
-and Intercontinental Cup are now split into separate categories — Club World Cup covers the modern \
-FIFA-run era (2000/2005–present), Intercontinental Cup covers the older European Cup-vs-Copa Libertadores \
-winner format (1960–2004), so older legends' wins now show up under the latter instead of being excluded.`
+const NOTE_PARAGRAPHS = [
+  "Each category is scored 0–100 relative to the best in the pool, then multiplied by your weight (0–10) and summed. Set a weight to 0 to ignore a category entirely.",
+  "⚠ Trophy/goal figures are career totals as commonly reported and rounded. For some of the older stats, it was literally impossible to find consensus data so I had to make my best estimate.",
+  "⚠ Assist totals weren't tracked until the 1990s, so don't put much stock into the assist numbers I pulled here (even for recent players).",
+  "⚠ Club World Cup didn't exist until the early 2000s, so older legends' wins in the Intercontinental Cup are the only ones counted for that era.",
+]
 
 export default function WeightPanel({ weights, setWeights }) {
   const [openGroups, setOpenGroups] = useState(new Set([GROUP_ORDER[0]]))
@@ -33,7 +30,7 @@ export default function WeightPanel({ weights, setWeights }) {
 
   return (
     <section className="panel">
-      <h2>Weight it your way</h2>
+      <h2>Choose which accolades should carry the most weight</h2>
 
       <div className="presets">
         {Object.keys(PRESETS).map(name => (
@@ -86,7 +83,11 @@ export default function WeightPanel({ weights, setWeights }) {
         })}
       </div>
 
-      <p className="note">{NOTE}</p>
+      <div className="note">
+        {NOTE_PARAGRAPHS.map((paragraph, i) => (
+          <p key={i}>{paragraph}</p>
+        ))}
+      </div>
     </section>
   )
 }

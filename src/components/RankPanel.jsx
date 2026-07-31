@@ -1,8 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
-import { PLAYERS } from '../data/players'
 import RankRow from './RankRow'
 
-export default function RankPanel({ ranked }) {
+export default function RankPanel({ ranked, poolSize }) {
   const [order, setOrder] = useState(ranked)
   const [draggingKey, setDraggingKey] = useState(null)
   const listRef = useRef(null)
@@ -150,7 +149,7 @@ export default function RankPanel({ ranked }) {
     <section className="panel">
       <h2>
         Your Top 10{' '}
-        <span className="panel-meta">from a pool of {PLAYERS.length} legends</span>
+        <span className="panel-meta">from a pool of {poolSize} legends</span>
       </h2>
       <ul className="rank-list" ref={listRef}>
         {order.map((player, idx) => (
