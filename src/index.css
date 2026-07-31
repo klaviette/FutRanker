@@ -50,7 +50,7 @@ body::before{
 
 header{ margin-bottom: 36px; }
 .header-logo{
-  width: 52px; height: 52px;
+  width: 128px; height: 128px;
   object-fit: contain;
   margin-bottom: 12px;
   image-rendering: pixelated;
@@ -81,6 +81,8 @@ h1{
 .board{ display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
 @media (max-width: 840px){ .board{ grid-template-columns: 1fr; } }
 
+.col-right{ display: flex; flex-direction: column; gap: 24px; }
+
 .panel{
   background: var(--glass);
   backdrop-filter: blur(18px);
@@ -92,7 +94,13 @@ h1{
 }
 .panel h2{
   font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 13px; letter-spacing: 0.12em; color: var(--chalk-dim);
+  font-size: 13px; letter-spacing: 0.12em; color: var(--chalk-faint);
+  margin: 0 0 16px; display:flex; align-items:center; justify-content: space-between;
+  font-weight: 600;
+}
+.panel h3{
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
+  font-size: 16px; letter-spacing: 0.12em; color: var(--chalk-dim);
   margin: 0 0 16px; display:flex; align-items:center; justify-content: space-between;
   font-weight: 600;
 }
@@ -100,6 +108,88 @@ h1{
   font-family:'IBM Plex Mono', monospace; font-size: 11px;
   color: var(--chalk-faint); letter-spacing: 0;
 }
+
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #666;
+  border-radius: 9px;
+  cursor: pointer;
+  position: relative;
+  margin: 0;
+}
+
+input[type="checkbox"]:checked {
+  border-color: #138b31;
+  opacity: 0.7;
+  background: linear-gradient(135deg, #3eee81, #0f7428);
+}
+
+input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+input[type="checkbox"]:hover {
+  border-color: var(--amber);;
+}
+
+input[type="checkbox"]:focus-visible {
+  outline: 2px solid #19a72c;
+  outline-offset: 2px;
+}
+
+.confed-filter{ position: relative; }
+.filter-btn{
+  background: rgba(242,239,230,0.04);
+  border: 1px solid var(--border);
+  color: var(--chalk-dim);
+  font-family:'IBM Plex Mono', monospace; font-size: 11px;
+  letter-spacing: 0; text-transform: none;
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: border-color .18s, background .18s, color .18s;
+}
+.filter-btn:hover{ border-color: var(--border-strong); color: var(--chalk); }
+.filter-btn:hover{ border-color: var(--amber); color: var(--amber-dim); }
+.filter-btn.active{ border-color: var(--amber); color: var(--amber); }
+.filter-menu{
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  background: #16241B;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  box-shadow: 0 16px 32px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 140px;
+}
+.filter-option{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family:'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--chalk-dim);
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
 
 .presets{ display:flex; flex-wrap:wrap; gap: 7px; margin-bottom: 20px; }
 .preset-btn{

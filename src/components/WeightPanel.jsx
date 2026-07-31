@@ -7,6 +7,7 @@ const NOTE_PARAGRAPHS = [
   "⚠ Trophy/goal figures are career totals as commonly reported and rounded. For some of the older stats, it was literally impossible to find consensus data so I had to make my best estimate.",
   "⚠ Assist totals weren't tracked until the 1990s, so don't put much stock into the assist numbers I pulled here (even for recent players).",
   "⚠ Club World Cup didn't exist until the early 2000s, so older legends' wins in the Intercontinental Cup are the only ones counted for that era.",
+  "⚠ Yes, there is an inherent bias towards more recent players due to better data availability and more awards. However, this site is just for fun.",
 ]
 
 export default function WeightPanel({ weights, setWeights }) {
@@ -30,7 +31,8 @@ export default function WeightPanel({ weights, setWeights }) {
 
   return (
     <section className="panel">
-      <h2>Choose which accolades should carry the most weight</h2>
+      <h3>Choose which accolades should carry the most weight</h3>
+      <h2>Presets</h2>
 
       <div className="presets">
         {Object.keys(PRESETS).map(name => (

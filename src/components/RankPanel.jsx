@@ -1,9 +1,13 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import RankRow from './RankRow'
 
-export default function RankPanel({ ranked, poolSize }) {
+const CONFEDERATION_OPTIONS = ['CONMEBOL', 'UEFA']
+
+export default function RankPanel({ ranked, selectedConfederations, onToggleConfederation }) {
   const [order, setOrder] = useState(ranked)
   const [draggingKey, setDraggingKey] = useState(null)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const filterRef = useRef(null)
   const listRef = useRef(null)
   const rowEls = useRef(new Map())
   const flipRects = useRef(null)
@@ -16,6 +20,16 @@ export default function RankPanel({ ranked, poolSize }) {
   const pointerY = useRef(0)
 
   useEffect(() => { setOrder(ranked) }, [ranked])
+
+  // close the confederation filter popover when clicking outside of it.
+  useEffect(() => {
+    if (!filterOpen) return
+    function handleClickOutside(e) {
+      if (filterRef.current && !filterRef.current.contains(e.target)) setFilterOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [filterOpen])
 
   // FLIP: whenever the order changes because of a drag, animate rows from
   // their previous screen position to their new one instead of snapping.
@@ -147,10 +161,32 @@ export default function RankPanel({ ranked, poolSize }) {
 
   return (
     <section className="panel">
-      <h2>
+      <h3>
         Your Top 10{' '}
-        <span className="panel-meta">from a pool of {poolSize} legends</span>
-      </h2>
+        <div className="confed-filter" ref={filterRef}>
+          <button
+            className={`filter-btn${selectedConfederations.length ? ' active' : ''}`}
+            type="button"
+            onClick={() => setFilterOpen(v => !v)}
+          >
+            Filter by Confederation{selectedConfederations.length ? ` (${selectedConfederations.length})` : ''}
+          </button>
+          {filterOpen && (
+            <div className="filter-menu">
+              {CONFEDERATION_OPTIONS.map(conf => (
+                <label key={conf} className="filter-option">
+                  <input
+                    type="checkbox"
+                    checked={selectedConfederations.includes(conf)}
+                    onChange={() => onToggleConfederation(conf)}
+                  />
+                  {conf}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      </h3>
       <ul className="rank-list" ref={listRef}>
         {order.map((player, idx) => (
           <RankRow
