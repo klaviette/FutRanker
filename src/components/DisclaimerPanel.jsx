@@ -14,7 +14,7 @@ export default function DisclaimerPanel() {
                 it in the future. Many data discrepancies exist across sources, so please take the numbers with a grain of salt.
               </p>
                 <p>
-                © 2026 Joshua Shapiro.
+                The list of footballers was largely taken from The Athletic's top 100 Footballers of All-Time list.
               </p>
 
                 </div>
