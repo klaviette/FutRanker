@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import RankRow from './RankRow'
 
-const CONFEDERATION_OPTIONS = ['CONMEBOL', 'UEFA']
+const CONFEDERATION_OPTIONS = ['CONMEBOL', 'UEFA', 'CAF']
 
 export default function RankPanel({ ranked, selectedConfederations, onToggleConfederation }) {
   const [order, setOrder] = useState(ranked)
