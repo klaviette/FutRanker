@@ -17,11 +17,11 @@ describe('RankPanel', () => {
     expect(names).toEqual(['Player A', 'Player B', 'Player C'])
   })
 
-  it('shows the confederation filter count when confederations are selected', () => {
+  it('shows the combined filter count when confederations are selected', () => {
     render(
       <RankPanel ranked={buildRanked()} selectedConfederations={['UEFA']} onToggleConfederation={() => {}} />
     )
-    expect(screen.getByRole('button', { name: /Filter by Confederation \(1\)/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Filter \(1\)/ })).toBeInTheDocument()
   })
 
   it('opens the filter menu and toggles a confederation checkbox', () => {
@@ -29,10 +29,42 @@ describe('RankPanel', () => {
     render(
       <RankPanel ranked={buildRanked()} selectedConfederations={[]} onToggleConfederation={onToggleConfederation} />
     )
-    fireEvent.click(screen.getByRole('button', { name: /Filter by Confederation/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Filter' }))
     const uefaCheckbox = screen.getByLabelText('UEFA')
     fireEvent.click(uefaCheckbox)
     expect(onToggleConfederation).toHaveBeenCalledWith('UEFA')
+  })
+
+  it('shows the combined filter count when positions are selected', () => {
+    render(
+      <RankPanel
+        ranked={buildRanked()}
+        selectedConfederations={[]}
+        onToggleConfederation={() => {}}
+        positionOptions={['GK', 'FW']}
+        selectedPositions={['FW']}
+        onTogglePosition={() => {}}
+      />
+    )
+    expect(screen.getByRole('button', { name: /Filter \(1\)/ })).toBeInTheDocument()
+  })
+
+  it('opens the filter menu and toggles a position checkbox', () => {
+    const onTogglePosition = vi.fn()
+    render(
+      <RankPanel
+        ranked={buildRanked()}
+        selectedConfederations={[]}
+        onToggleConfederation={() => {}}
+        positionOptions={['GK', 'FW']}
+        selectedPositions={[]}
+        onTogglePosition={onTogglePosition}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Filter' }))
+    const fwCheckbox = screen.getByLabelText('FW')
+    fireEvent.click(fwCheckbox)
+    expect(onTogglePosition).toHaveBeenCalledWith('FW')
   })
 
   it('re-syncs its internal order whenever the ranked prop changes', () => {

@@ -14,10 +14,17 @@ export default function App() {
   const [players, setPlayers] = useState(null)
   const [loadError, setLoadError] = useState(false)
   const [selectedConfederations, setSelectedConfederations] = useState([])
+  const [selectedPositions, setSelectedPositions] = useState([])
 
   function toggleConfederation(conf) {
     setSelectedConfederations(prev =>
       prev.includes(conf) ? prev.filter(c => c !== conf) : [...prev, conf]
+    )
+  }
+
+  function togglePosition(pos) {
+    setSelectedPositions(prev =>
+      prev.includes(pos) ? prev.filter(p => p !== pos) : [...prev, pos]
     )
   }
 
@@ -36,11 +43,17 @@ export default function App() {
     return () => { cancelled = true }
   }, [])
 
+  const positionOptions = useMemo(() => {
+    if (!players) return []
+    return Array.from(new Set(players.map(p => p.position).filter(Boolean))).sort()
+  }, [players])
+
   const filteredPlayers = useMemo(() => {
     if (!players) return null
-    if (selectedConfederations.length === 0) return players
-    return players.filter(p => selectedConfederations.includes(p.confederation))
-  }, [players, selectedConfederations])
+    return players
+      .filter(p => selectedConfederations.length === 0 || selectedConfederations.includes(p.confederation))
+      .filter(p => selectedPositions.length === 0 || selectedPositions.includes(p.position))
+  }, [players, selectedConfederations, selectedPositions])
 
   const maxes = useMemo(() => (filteredPlayers ? computeMaxes(filteredPlayers) : null), [filteredPlayers])
 
@@ -74,6 +87,9 @@ export default function App() {
               ranked={ranked}
               selectedConfederations={selectedConfederations}
               onToggleConfederation={toggleConfederation}
+              positionOptions={positionOptions}
+              selectedPositions={selectedPositions}
+              onTogglePosition={togglePosition}
             />
           ) : (
             <section className="panel">

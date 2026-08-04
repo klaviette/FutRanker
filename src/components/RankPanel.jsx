@@ -3,7 +3,14 @@ import RankRow from './RankRow'
 
 const CONFEDERATION_OPTIONS = ['CONMEBOL', 'UEFA', 'CAF', 'AFC', 'CONCACAF', 'OFC']
 
-export default function RankPanel({ ranked, selectedConfederations, onToggleConfederation }) {
+export default function RankPanel({
+  ranked,
+  selectedConfederations,
+  onToggleConfederation,
+  positionOptions = [],
+  selectedPositions = [],
+  onTogglePosition,
+}) {
   const [order, setOrder] = useState(ranked)
   const [draggingKey, setDraggingKey] = useState(null)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -21,7 +28,7 @@ export default function RankPanel({ ranked, selectedConfederations, onToggleConf
 
   useEffect(() => { setOrder(ranked) }, [ranked])
 
-  // close the confederation filter popover when clicking outside of it.
+  // close the filter popover when clicking outside of it.
   useEffect(() => {
     if (!filterOpen) return
     function handleClickOutside(e) {
@@ -159,30 +166,57 @@ export default function RankPanel({ ranked, selectedConfederations, onToggleConf
     setDraggingKey(null)
   }
 
+  const selectedFilterCount = selectedConfederations.length + selectedPositions.length
+
   return (
-    <section className="panel">
+    <section className="panel rank-panel">
       <h3>
         Your Top 10{' '}
         <div className="confed-filter" ref={filterRef}>
           <button
-            className={`filter-btn${selectedConfederations.length ? ' active' : ''}`}
+            className={`filter-btn filter-btn--icon${selectedFilterCount ? ' active' : ''}`}
             type="button"
             onClick={() => setFilterOpen(v => !v)}
           >
-            Filter by Confederation{selectedConfederations.length ? ` (${selectedConfederations.length})` : ''}
+            <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false">
+              <path
+                d="M1 1.5h14L9.5 8.2v5.1L6.5 15v-6.8z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Filter{selectedFilterCount ? ` (${selectedFilterCount})` : ''}
           </button>
           {filterOpen && (
             <div className="filter-menu">
-              {CONFEDERATION_OPTIONS.map(conf => (
-                <label key={conf} className="filter-option">
-                  <input
-                    type="checkbox"
-                    checked={selectedConfederations.includes(conf)}
-                    onChange={() => onToggleConfederation(conf)}
-                  />
-                  {conf}
-                </label>
-              ))}
+              <div className="filter-section">
+                <div className="filter-section-title">Position</div>
+                {positionOptions.map(pos => (
+                  <label key={pos} className="filter-option">
+                    <input
+                      type="checkbox"
+                      checked={selectedPositions.includes(pos)}
+                      onChange={() => onTogglePosition(pos)}
+                    />
+                    {pos}
+                  </label>
+                ))}
+              </div>
+              <div className="filter-section">
+                <div className="filter-section-title">Confederation</div>
+                {CONFEDERATION_OPTIONS.map(conf => (
+                  <label key={conf} className="filter-option">
+                    <input
+                      type="checkbox"
+                      checked={selectedConfederations.includes(conf)}
+                      onChange={() => onToggleConfederation(conf)}
+                    />
+                    {conf}
+                  </label>
+                ))}
+              </div>
             </div>
           )}
         </div>
