@@ -1,0 +1,1 @@
+var e=`/assets/SeriesCalcLogo-CYhwUnYP.png`;export{e as t};

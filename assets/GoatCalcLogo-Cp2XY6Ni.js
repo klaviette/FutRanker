@@ -1,0 +1,1 @@
+var e=`/assets/GoatCalcLogo-BVw7PIwK.png`;export{e as t};
