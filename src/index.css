@@ -465,3 +465,15 @@ input[type="range"]::-moz-range-thumb{
 }
 .rank-toggle:hover{ border-color: var(--amber); color: var(--amber-2);}
 .rank-toggle.open{ transform: rotate(0deg); color: var(--chalk-faint); }
+
+.home-link{
+  display: block; width: fit-content;
+  margin-bottom: 18px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 11.5px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--chalk-faint); text-decoration: none;
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: 6px 14px;
+  transition: border-color .15s, color .15s;
+}
+.home-link:hover, .home-link:focus-visible{ border-color: var(--amber); color: var(--amber-2); }

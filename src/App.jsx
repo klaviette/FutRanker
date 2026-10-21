@@ -69,6 +69,7 @@ export default function App() {
     <div className="wrap">
       <header>
         <div className="heading-block">
+          <a href="/" className="home-link">&larr; All tools</a>
           <img src={logo} alt="GOAT Calculator logo" className="header-logo" />
           <p className="eyebrow">Weighted Ranking Tool</p>
           <h1>The GOAT Calculator</h1>
