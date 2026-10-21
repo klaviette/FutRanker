@@ -85,7 +85,7 @@ function ForwardTab() {
       <section className="panel">
         <h2>Series setup</h2>
         <SetupFields setup={s} id="fwd" />
-        <PercentField id="fwd-game-pct" label={`${s.labelA} fair odds or best estimate`} field={game} />
+        <PercentField id="fwd-game-pct" label={`${s.labelA} fair odds or best estimate per game`} field={game} />
         <AssumptionNote />
       </section>
 

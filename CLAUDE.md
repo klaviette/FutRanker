@@ -95,7 +95,7 @@ Rules / semantics:
 - Score steppers are bounded by `minWins`/`maxWins` so the state can never be a finished series;
   changing length/format/win-by-2 re-clamps the score.
 - Model assumption (shown on page): games are independent with constant odds.
-- Copy: the per-game input is labelled "Side A fair odds or best estimate"; reverse input is
+- Copy: the per-game input is labelled "Side A fair odds or best estimate per game"; reverse input is
   "Side A series odds".
 
 `src/utils/seriesOdds.js` (pure, tested):
