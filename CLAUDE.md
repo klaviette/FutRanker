@@ -67,21 +67,41 @@ Ranks footballers by user-weighted accolade categories.
 Given a series format, current score and odds, computes who wins the series.
 
 **Two tabs** (`SeriesOdds.jsx`, ARIA tablist): **Forward** (per-game odds → series odds) and
-**Reverse** (series odds → implied per-game odds). The tabs are intentionally *mutually independent*:
-each calls `useSeriesSetup()` itself and both stay mounted (inactive one `hidden`), so each keeps
-its own setup and switching never shares or resets state. Element ids are prefixed per tab
-(`fwd-*`, `rev-*`) because both are in the DOM.
+**Reverse** (series odds → implied per-game odds). The **series setup is shared**: `SeriesOdds`
+calls `useSeriesSetup()` once and passes it to both tabs, so format, length, win-by-2, names and
+score carry across when switching (the owner asked for this). Each tab's **odds inputs stay separate**
+(Forward: manual/Elo/record; Reverse: series odds), as does each chart's open/closed state. Both tabs
+stay mounted (inactive one `hidden`); element ids are prefixed per tab (`fwd-*`, `rev-*`) because
+both are in the DOM.
 
 Files:
 - `setup.js` — `useSeriesSetup()` (format, length, win-by-2, names, score + validation/clamping),
   `usePercentField()` (slider + text box kept in sync, with a draft string), `FORMATS`, `pct()`.
-- `SetupFields.jsx` — format toggle (Best of / First to), length stepper, "Need to win by 2" switch,
-  side rows (editable names with pencil icon, win steppers), `PercentField`, `AssumptionNote`.
-- `GameOddsInput.jsx` — Forward tab's per-game odds source: **Manual** (slider/box), **Elo**
-  (two ratings), or **Record** (W–L per side). Estimates come from `src/utils/gameEstimates.js`
-  (`eloWinChance`, 400-point scale; `log5`/`recordWinChance`, Bill James log5, no-games side = .500).
-  "Fine-tune manually" (and clicking the chart) copies the current estimate into Manual mode.
-  Number boxes use `useNumberField` in `setup.js` (keeps the last valid value while a draft is invalid).
+- `SetupFields.jsx` — the setup panel is split into labelled `SetupSection`s that all share one
+  layout (mono uppercase title → `.so-control-row` → details, divider between sections):
+  **Format** (Best of / First to + length stepper on one row, "Need to win by 2" switch, rule hint),
+  **Current score** (side rows: pencil icon *before* the editable name, win steppers), and the odds
+  section from `GameOddsInput` (**Per-game odds** on Forward / **Series odds** on Reverse).
+  Keep new setup controls inside a section and follow that pattern. Also exports `PercentField`,
+  `AssumptionNote`.
+- `GameOddsInput.jsx` — the **Manual / Elo / Record** source picker, on *both* tabs. State lives in
+  `useOddsEstimate()` (`setup.js`), called once per tab, so each tab has its own source choice and
+  Elo/record values. `est.p` is the per-game estimate (null in Manual). Estimates come from
+  `src/utils/gameEstimates.js` (`eloWinChance`, 400-point scale; `log5`/`recordWinChance`,
+  Bill James log5, no-games side = .500).
+  - Forward: Manual = per-game slider; Elo/Record give the per-game odds directly.
+  - Reverse: Manual = series-odds slider; Elo/Record per-game estimate → `seriesWinChance` → series
+    odds, which the solver then inverts (so it lands back on the estimate).
+  - "Fine-tune manually" (and clicking the chart) copies the current value into that tab's slider
+    and switches to Manual.
+  Number boxes use `useNumberField` (keeps the last valid value while a draft is invalid).
+- Each tab's slider is its own value (Forward = per-game %, Reverse = series %); the owner chose
+  to keep them separate rather than converting one into the other on tab switch.
+- `storage.js` — remembers settings across reloads in `localStorage` key `seriesOdds.settings.v1`:
+  `format`, `length`, `winBy2` (saved by `useSeriesSetup`) and the two sliders `gamePct` (Forward)
+  and `seriesPct` (Reverse) (saved via `usePercentField(..., saveKey)`). Names, score, Elo/record
+  inputs are *not* saved. Every access is try/caught and invalid saved values fall back to defaults.
+  Tests clear `localStorage` in `beforeEach` so saved state can't leak between them.
 - `ResultPanels.jsx` — `SplitPanel` (two big percentages + split bar), `ChartPanel`
   (collapsible; unmounts the chart when closed), `BreakdownPanel` (every final score).
 - `OddsCurve.jsx` — SVG chart of series win % vs game win %. Measures its container with
@@ -116,7 +136,7 @@ Rules / semantics:
 
 `src/tests/` — vitest + Testing Library. Key suites: `seriesOdds.test.js` (math incl. tennis-game
 value 0.7357 at p=0.6, forward/reverse round-trip, both calculators agree), `SeriesOdds.test.jsx`
-(format switch, win-by-2, collapse, reverse solve, tab independence — query within
+(format switch, win-by-2, collapse, reverse solve, shared setup across tabs — query within
 `getByRole('tabpanel')` since hidden tabs are in the DOM), `Home.test.jsx`, plus GOAT component tests.
 
 ## Deployment notes

@@ -1,5 +1,4 @@
-import { PercentField } from './SetupFields'
-import { pct } from './setup'
+import { SetupSection } from './SetupFields'
 
 const ODDS_SOURCES = [
   { id: 'manual', label: 'Manual' },
@@ -7,21 +6,22 @@ const ODDS_SOURCES = [
   { id: 'record', label: 'Record' },
 ]
 
-// Where the Forward tab's per-game odds come from: typed directly, or estimated
-// from Elo ratings or win–loss records. `estimate` is side A's per-game chance (0–1).
-export default function GameOddsInput({ id, source, onSource, game, elo, record, estimate, labelA, labelB, onFineTune }) {
+// Picks where a tab's odds input comes from: typed directly (`manual`, the tab's own
+// slider), or estimated from Elo ratings / win–loss records (state from useOddsEstimate).
+// `readout` describes the estimate's result in the tab's terms (per-game or series odds).
+export default function GameOddsInput({ id, heading, est, manual, readout, labelA, labelB, onFineTune }) {
+  const { source, setSource, elo, record } = est
   return (
-    <div className="so-estimate">
-      <div className="so-estimate-head">
-        <span className="so-label">Per-game odds from</span>
-        <div className="so-seg" role="group" aria-label="Per-game odds source">
+    <SetupSection id={`${id}-odds-title`} title={heading}>
+      <div className="so-control-row">
+        <div className="so-seg" role="group" aria-label={`${heading} source`}>
           {ODDS_SOURCES.map(o => (
             <button
               key={o.id}
               type="button"
               className={`so-seg-btn${o.id === source ? ' is-active' : ''}`}
               aria-pressed={o.id === source}
-              onClick={() => onSource(o.id)}
+              onClick={() => setSource(o.id)}
             >
               {o.label}
             </button>
@@ -29,9 +29,7 @@ export default function GameOddsInput({ id, source, onSource, game, elo, record,
         </div>
       </div>
 
-      {source === 'manual' && (
-        <PercentField id={`${id}-game-pct`} label={`${labelA} fair odds or best estimate per game`} field={game} />
-      )}
+      {source === 'manual' && manual}
 
       {source === 'elo' && (
         <>
@@ -57,13 +55,11 @@ export default function GameOddsInput({ id, source, onSource, game, elo, record,
 
       {source !== 'manual' && (
         <div className="so-estimate-out">
-          <span>
-            {labelA} per game: <b>{pct(estimate)}</b>
-          </span>
+          <span>{readout}</span>
           <button type="button" className="preset-btn" onClick={onFineTune}>Fine-tune manually</button>
         </div>
       )}
-    </div>
+    </SetupSection>
   )
 }
 

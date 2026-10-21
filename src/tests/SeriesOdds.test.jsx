@@ -1,7 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import SeriesOdds from '../series/SeriesOdds'
+
+// Settings persist in localStorage; start every test from the defaults.
+beforeEach(() => { window.localStorage.clear() })
 
 describe('SeriesOdds', () => {
   it('keeps the same wins needed when switching best of 7 to first to', async () => {
@@ -14,7 +17,7 @@ describe('SeriesOdds', () => {
     render(<SeriesOdds />)
     expect(screen.queryByText(/after 3–3/)).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('switch', { name: /win by 2/i }))
-    expect(screen.getAllByText(/after 3–3/)).toHaveLength(2)
+    expect(within(screen.getByRole('tabpanel')).getAllByText(/after 3–3/)).toHaveLength(2)
   })
 
   it('lets a side go past target - 1 only with win by 2', async () => {
@@ -51,13 +54,21 @@ describe('SeriesOdds reverse tab', () => {
     expect(screen.getByText(/needs to win each game 50\.0% of the time/)).toBeInTheDocument()
   })
 
-  it('keeps each tab’s setup independent', async () => {
+  it('shares the series setup between tabs but keeps odds inputs separate', async () => {
     render(<SeriesOdds />)
-    await userEvent.click(screen.getByRole('button', { name: 'Increase Side A wins' }))
+    const panel = () => within(screen.getByRole('tabpanel'))
+    await userEvent.click(panel().getByRole('button', { name: 'Increase Side A wins' }))
+    await userEvent.click(panel().getByRole('button', { name: 'First to' }))
+    await userEvent.click(panel().getByRole('button', { name: 'Elo' }))
+
     await userEvent.click(screen.getByRole('tab', { name: /reverse/i }))
-    expect(within(screen.getByRole('tabpanel')).getByLabelText('Side A wins')).toHaveTextContent('0')
+    expect(panel().getByLabelText('Side A wins')).toHaveTextContent('1')
+    expect(panel().getByRole('button', { name: 'First to' })).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(panel().getByRole('button', { name: 'Increase Side B wins' }))
+
     await userEvent.click(screen.getByRole('tab', { name: /forward/i }))
-    expect(within(screen.getByRole('tabpanel')).getByLabelText('Side A wins')).toHaveTextContent('1')
+    expect(panel().getByLabelText('Side B wins')).toHaveTextContent('1')
+    expect(panel().getByRole('button', { name: 'Elo' })).toHaveAttribute('aria-pressed', 'true')
   })
 })
 
@@ -80,5 +91,78 @@ describe('SeriesOdds per-game odds source', () => {
     await userEvent.click(panel().getByRole('button', { name: 'Fine-tune manually' }))
     // Defaults 10–5 vs 8–7 → log5 ≈ 63.6%
     expect(panel().getByRole('spinbutton', { name: /per game, percent/i })).toHaveValue(63.6)
+  })
+})
+
+describe('SeriesOdds saved settings', () => {
+  it('remembers format, length, win by 2 and both sliders across a reload', async () => {
+    const { unmount } = render(<SeriesOdds />)
+    const panel = () => within(screen.getByRole('tabpanel'))
+    await userEvent.click(panel().getByRole('button', { name: 'First to' }))
+    await userEvent.click(panel().getByRole('button', { name: 'Increase series length' }))
+    await userEvent.click(panel().getByRole('switch', { name: /win by 2/i }))
+    const game = panel().getByRole('spinbutton', { name: /per game, percent/i })
+    await userEvent.clear(game); await userEvent.type(game, '62.5')
+    await userEvent.click(screen.getByRole('tab', { name: /reverse/i }))
+    const series = panel().getByRole('spinbutton', { name: /series odds, percent/i })
+    await userEvent.clear(series); await userEvent.type(series, '70')
+    await userEvent.click(panel().getByRole('button', { name: 'Increase Side A wins' }))
+    unmount()
+
+    render(<SeriesOdds />)
+    expect(panel().getByRole('button', { name: 'First to' })).toHaveAttribute('aria-pressed', 'true')
+    expect(panel().getByRole('spinbutton', { name: 'First to' })).toHaveValue(5)
+    expect(panel().getByRole('switch', { name: /win by 2/i })).toHaveAttribute('aria-checked', 'true')
+    expect(panel().getByRole('spinbutton', { name: /per game, percent/i })).toHaveValue(62.5)
+    expect(panel().getByLabelText('Side A wins')).toHaveTextContent('0') // score isn't saved
+    await userEvent.click(screen.getByRole('tab', { name: /reverse/i }))
+    expect(panel().getByRole('spinbutton', { name: /series odds, percent/i })).toHaveValue(70)
+  })
+
+  it('ignores invalid saved values', () => {
+    window.localStorage.setItem('seriesOdds.settings.v1', JSON.stringify({ format: 'bestOf', length: 8, gamePct: 500 }))
+    render(<SeriesOdds />)
+    const panel = within(screen.getByRole('tabpanel'))
+    expect(panel.getByRole('spinbutton', { name: 'Best of' })).toHaveValue(7)
+    expect(panel.getByRole('spinbutton', { name: /per game, percent/i })).toHaveValue(50)
+  })
+})
+
+describe('SeriesOdds reverse odds source', () => {
+  it('turns an Elo estimate into series odds and solves back to the same per-game odds', async () => {
+    render(<SeriesOdds />)
+    await userEvent.click(screen.getByRole('tab', { name: /reverse/i }))
+    const panel = () => within(screen.getByRole('tabpanel'))
+    await userEvent.click(panel().getByRole('button', { name: 'Elo' }))
+    const a = panel().getByRole('spinbutton', { name: 'Side A Elo' })
+    const b = panel().getByRole('spinbutton', { name: 'Side B Elo' })
+    await userEvent.clear(a); await userEvent.type(a, '1900')
+    await userEvent.clear(b); await userEvent.type(b, '1500')
+    // 400-point edge → 90.9% per game; the solver recovers it from the series odds.
+    expect(panel().getByText(/needs to win each game 90\.9% of the time/)).toBeInTheDocument()
+  })
+
+  it('hands a record-based series estimate to the manual series slider', async () => {
+    render(<SeriesOdds />)
+    await userEvent.click(screen.getByRole('tab', { name: /reverse/i }))
+    const panel = () => within(screen.getByRole('tabpanel'))
+    await userEvent.click(panel().getByRole('button', { name: 'Record' }))
+    const readout = panel().getByText(/series odds:/).querySelector('b').textContent
+    await userEvent.click(panel().getByRole('button', { name: 'Fine-tune manually' }))
+    expect(panel().getByRole('spinbutton', { name: /series odds, percent/i })).toHaveValue(parseFloat(readout))
+  })
+
+  it('keeps each tab’s slider value when switching tabs', async () => {
+    render(<SeriesOdds />)
+    const panel = () => within(screen.getByRole('tabpanel'))
+    const game = panel().getByRole('spinbutton', { name: /per game, percent/i })
+    await userEvent.clear(game); await userEvent.type(game, '58')
+    await userEvent.click(screen.getByRole('tab', { name: /reverse/i }))
+    const series = panel().getByRole('spinbutton', { name: /series odds, percent/i })
+    await userEvent.clear(series); await userEvent.type(series, '81')
+    await userEvent.click(screen.getByRole('tab', { name: /forward/i }))
+    expect(panel().getByRole('spinbutton', { name: /per game, percent/i })).toHaveValue(58)
+    await userEvent.click(screen.getByRole('tab', { name: /reverse/i }))
+    expect(panel().getByRole('spinbutton', { name: /series odds, percent/i })).toHaveValue(81)
   })
 })

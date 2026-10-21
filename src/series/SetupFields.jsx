@@ -1,57 +1,68 @@
 import { FORMATS, maxWins, minWins } from './setup'
 
-// Format, length, win-by-2 and the two sides. `id` keeps element ids unique per tab.
+// A labelled group inside the setup panel. Every group uses the same layout:
+// small mono title, then its controls. Groups are separated by a divider.
+export function SetupSection({ id, title, children }) {
+  return (
+    <section className="so-section" aria-labelledby={id}>
+      <h3 id={id} className="so-section-title">{title}</h3>
+      {children}
+    </section>
+  )
+}
+
+// Format (length, best of / first to, win by 2) and current score.
+// `id` keeps element ids unique per tab.
 export function SetupFields({ setup: s, id }) {
   return (
     <>
-      <div className="so-field">
-        <div className="so-seg" role="group" aria-label="Series format">
-          {Object.entries(FORMATS).map(([key, f]) => (
+      <SetupSection id={`${id}-format-title`} title="Format">
+        <div className="so-control-row">
+          <div className="so-seg" role="group" aria-label="Series format">
+            {Object.entries(FORMATS).map(([key, f]) => (
+              <button
+                key={key}
+                type="button"
+                className={`so-seg-btn${key === s.format ? ' is-active' : ''}`}
+                aria-pressed={key === s.format}
+                onClick={() => s.changeFormat(key)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <div className="so-number-wrap">
             <button
-              key={key}
               type="button"
-              className={`so-seg-btn${key === s.format ? ' is-active' : ''}`}
-              aria-pressed={key === s.format}
-              onClick={() => s.changeFormat(key)}
-            >
-              {f.label}
-            </button>
-          ))}
+              className="rank-toggle"
+              aria-label="Decrease series length"
+              disabled={s.length - s.fmt.step < s.fmt.min}
+              onClick={() => s.changeLengthDraft(String(s.length - s.fmt.step))}
+            >−</button>
+            <input
+              id={`${id}-length`}
+              className={`so-number${s.lengthErr ? ' is-invalid' : ''}`}
+              type="number"
+              inputMode="numeric"
+              min={s.fmt.min}
+              max={s.fmt.max}
+              step={s.fmt.step}
+              value={s.lengthDraft}
+              aria-label={s.fmt.label}
+              aria-invalid={Boolean(s.lengthErr)}
+              aria-describedby={`${id}-length-hint`}
+              onChange={e => s.changeLengthDraft(e.target.value)}
+              onBlur={s.restoreLengthDraft}
+            />
+            <button
+              type="button"
+              className="rank-toggle"
+              aria-label="Increase series length"
+              disabled={s.length + s.fmt.step > s.fmt.max}
+              onClick={() => s.changeLengthDraft(String(s.length + s.fmt.step))}
+            >+</button>
+          </div>
         </div>
-        <div className="so-number-wrap">
-          <button
-            type="button"
-            className="rank-toggle"
-            aria-label="Decrease series length"
-            disabled={s.length - s.fmt.step < s.fmt.min}
-            onClick={() => s.changeLengthDraft(String(s.length - s.fmt.step))}
-          >−</button>
-          <input
-            id={`${id}-length`}
-            className={`so-number${s.lengthErr ? ' is-invalid' : ''}`}
-            type="number"
-            inputMode="numeric"
-            min={s.fmt.min}
-            max={s.fmt.max}
-            step={s.fmt.step}
-            value={s.lengthDraft}
-            aria-label={s.fmt.label}
-            aria-invalid={Boolean(s.lengthErr)}
-            aria-describedby={`${id}-length-hint`}
-            onChange={e => s.changeLengthDraft(e.target.value)}
-            onBlur={s.restoreLengthDraft}
-          />
-          <button
-            type="button"
-            className="rank-toggle"
-            aria-label="Increase series length"
-            disabled={s.length + s.fmt.step > s.fmt.max}
-            onClick={() => s.changeLengthDraft(String(s.length + s.fmt.step))}
-          >+</button>
-        </div>
-        <p id={`${id}-length-hint`} className={`so-hint${s.lengthErr ? ' so-hint--error' : ''}`}>
-          {s.lengthErr ?? s.lengthHint}
-        </p>
 
         <button
           type="button"
@@ -63,28 +74,38 @@ export function SetupFields({ setup: s, id }) {
           <span className="so-switch-track" aria-hidden="true"><span className="so-switch-thumb" /></span>
           Need to win by 2
         </button>
-      </div>
 
-      <div className="so-sides">
-        <Side
-          name={s.nameA} onName={s.setNameA} placeholder="Side A"
-          wins={s.winsA} onWins={s.setWinsA}
-          min={minWins(s.winsB, s.target, s.winBy2)} max={maxWins(s.winsB, s.target, s.winBy2)}
-        />
-        <Side
-          name={s.nameB} onName={s.setNameB} placeholder="Side B"
-          wins={s.winsB} onWins={s.setWinsB}
-          min={minWins(s.winsA, s.target, s.winBy2)} max={maxWins(s.winsA, s.target, s.winBy2)}
-        />
-      </div>
+        <p id={`${id}-length-hint`} className={`so-hint${s.lengthErr ? ' so-hint--error' : ''}`}>
+          {s.lengthErr ?? s.lengthHint}
+        </p>
+      </SetupSection>
+
+      <SetupSection id={`${id}-score-title`} title="Current score">
+        <div className="so-sides">
+          <Side
+            name={s.nameA} onName={s.setNameA} placeholder="Side A"
+            wins={s.winsA} onWins={s.setWinsA}
+            min={minWins(s.winsB, s.target, s.winBy2)} max={maxWins(s.winsB, s.target, s.winBy2)}
+          />
+          <Side
+            name={s.nameB} onName={s.setNameB} placeholder="Side B"
+            wins={s.winsB} onWins={s.setWinsB}
+            min={minWins(s.winsA, s.target, s.winBy2)} max={maxWins(s.winsA, s.target, s.winBy2)}
+          />
+        </div>
+      </SetupSection>
     </>
   )
 }
+
 
 function Side({ name, onName, placeholder, wins, onWins, min, max }) {
   return (
     <div className="so-side">
       <label className="so-name-wrap">
+        <svg className="so-pencil" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+          <path d="M4 20h4L19 9l-4-4L4 16v4Z M13.5 6.5l4 4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
         <input
           className="so-name"
           value={name}
@@ -92,9 +113,6 @@ function Side({ name, onName, placeholder, wins, onWins, min, max }) {
           aria-label={`${placeholder} name`}
           onChange={e => onName(e.target.value)}
         />
-        <svg className="so-pencil" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-          <path d="M4 20h4L19 9l-4-4L4 16v4Z M13.5 6.5l4 4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
       </label>
       <div className="so-stepper">
         <button type="button" className="rank-toggle" aria-label={`Decrease ${placeholder} wins`} disabled={wins <= min} onClick={() => onWins(wins - 1)}>−</button>

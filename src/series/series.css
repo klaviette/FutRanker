@@ -256,3 +256,25 @@
 }
 .so-estimate-out b{ font-family: 'IBM Plex Mono', monospace; color: var(--amber-2); font-size: 14px; }
 .so-estimate-out .preset-btn{ padding: 5px 11px; font-size: 11.5px; }
+
+/* Setup panel sections: Format / Current score / Odds — one shared layout */
+.so-section{ padding: 18px 0; border-top: 1px solid var(--border); }
+.panel h2 + .so-section{ padding-top: 2px; border-top: none; }
+.panel .so-section-title{
+  display: block; margin: 0 0 12px;
+  font-family: 'IBM Plex Mono', monospace; font-weight: 500;
+  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--chalk-faint);
+}
+.so-control-row{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 14px; }
+.so-control-row .so-seg, .so-control-row .so-number-wrap{ margin: 0; }
+.so-section .so-switch{ margin-top: 14px; }
+.so-section .so-switch + .so-hint{ margin-top: 8px; line-height: 1.5; }
+.so-section .slider-row{ padding-top: 14px; }
+.so-section .so-estimate-grid{ margin: 14px 0 8px; }
+.so-section .so-hint{ line-height: 1.5; }
+.so-section .so-estimate-out{ margin-top: 12px; }
+.so-section + .note{ margin-top: 0; }
+
+/* Name sits right after its pencil so the edit affordance is next to the text */
+.so-name-wrap{ gap: 7px; }

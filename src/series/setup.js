@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { winsNeeded, isFinished } from '../utils/seriesOdds'
+import { eloWinChance, recordWinChance } from '../utils/gameEstimates'
+import { loadSettings, saveSettings, savedNumber } from './storage'
 
 export const FORMATS = {
   bestOf: { label: 'Best of', min: 1, max: 99, step: 2 },
@@ -34,13 +36,27 @@ function clampScore(a, b, target, winBy2) {
   return isFinished(target, ca, cb, winBy2) ? [0, 0] : [ca, cb]
 }
 
+// Saved format/length/win-by-2, or the defaults if nothing valid was saved.
+function savedFormat() {
+  const s = loadSettings()
+  const format = s.format in FORMATS ? s.format : 'bestOf'
+  const length = typeof s.length === 'number' && lengthError(format, String(s.length)) === null
+    ? s.length
+    : format === 'bestOf' ? 7 : 4
+  return { format, length, winBy2: s.winBy2 === true }
+}
+
 // All state for one series setup (format, length, win by 2, names, score).
-// Each tab calls this separately so their setups never affect each other.
+// Called once in SeriesOdds and shared by both tabs. Format, length and win by 2
+// are remembered across reloads; names and score are not.
 export function useSeriesSetup() {
-  const [format, setFormat] = useState('bestOf')
-  const [length, setLength] = useState(7)
-  const [lengthDraft, setLengthDraft] = useState('7')
-  const [winBy2, setWinBy2] = useState(false)
+  const [initial] = useState(savedFormat)
+  const [format, setFormat] = useState(initial.format)
+  const [length, setLength] = useState(initial.length)
+  const [lengthDraft, setLengthDraft] = useState(String(initial.length))
+  const [winBy2, setWinBy2] = useState(initial.winBy2)
+
+  useEffect(() => { saveSettings({ format, length, winBy2 }) }, [format, length, winBy2])
   const [nameA, setNameA] = useState('Side A')
   const [nameB, setNameB] = useState('Side B')
   const [winsA, setWinsA] = useState(0)
@@ -95,9 +111,12 @@ export function useSeriesSetup() {
 }
 
 // A percentage with a slider and a free-entry box that stay in sync.
-export function usePercentField(initial, min, max) {
-  const [value, setValue] = useState(initial)
-  const [draft, setDraft] = useState(String(initial))
+// With `saveKey`, the value is remembered across reloads under that name.
+export function usePercentField(initial, min, max, saveKey) {
+  const [value, setValue] = useState(() => saveKey ? savedNumber(loadSettings()[saveKey], min, max, initial) : initial)
+  const [draft, setDraft] = useState(() => String(value))
+
+  useEffect(() => { if (saveKey) saveSettings({ [saveKey]: value }) }, [saveKey, value])
 
   const parse = text => {
     const n = Number(text)
@@ -132,6 +151,27 @@ export function useNumberField(initial, parse, errorText) {
     },
     restore() { if (error) setDraft(String(value)) },
   }
+}
+
+// Manual / Elo / Record source plus the Elo and record inputs, for one tab.
+// `p` is side A's estimated per-game chance, or null in manual mode.
+export function useOddsEstimate() {
+  const [source, setSource] = useState('manual')
+  const elo = {
+    a: useNumberField(1600, parseRating, 'Enter a rating.'),
+    b: useNumberField(1500, parseRating, 'Enter a rating.'),
+  }
+  const record = {
+    winsA: useNumberField(10, parseCount, 'Use a whole number, 0 or more.'),
+    lossesA: useNumberField(5, parseCount, 'Use a whole number, 0 or more.'),
+    winsB: useNumberField(8, parseCount, 'Use a whole number, 0 or more.'),
+    lossesB: useNumberField(7, parseCount, 'Use a whole number, 0 or more.'),
+  }
+  const p =
+    source === 'elo' ? eloWinChance(elo.a.value, elo.b.value)
+    : source === 'record' ? recordWinChance(record.winsA.value, record.lossesA.value, record.winsB.value, record.lossesB.value)
+    : null
+  return { source, setSource, elo, record, p }
 }
 
 export const parseRating = text => {
