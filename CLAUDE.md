@@ -77,6 +77,11 @@ Files:
   `usePercentField()` (slider + text box kept in sync, with a draft string), `FORMATS`, `pct()`.
 - `SetupFields.jsx` — format toggle (Best of / First to), length stepper, "Need to win by 2" switch,
   side rows (editable names with pencil icon, win steppers), `PercentField`, `AssumptionNote`.
+- `GameOddsInput.jsx` — Forward tab's per-game odds source: **Manual** (slider/box), **Elo**
+  (two ratings), or **Record** (W–L per side). Estimates come from `src/utils/gameEstimates.js`
+  (`eloWinChance`, 400-point scale; `log5`/`recordWinChance`, Bill James log5, no-games side = .500).
+  "Fine-tune manually" (and clicking the chart) copies the current estimate into Manual mode.
+  Number boxes use `useNumberField` in `setup.js` (keeps the last valid value while a draft is invalid).
 - `ResultPanels.jsx` — `SplitPanel` (two big percentages + split bar), `ChartPanel`
   (collapsible; unmounts the chart when closed), `BreakdownPanel` (every final score).
 - `OddsCurve.jsx` — SVG chart of series win % vs game win %. Measures its container with
@@ -95,7 +100,7 @@ Rules / semantics:
 - Score steppers are bounded by `minWins`/`maxWins` so the state can never be a finished series;
   changing length/format/win-by-2 re-clamps the score.
 - Model assumption (shown on page): games are independent with constant odds.
-- Copy: the per-game input is labelled "Side A fair odds or best estimate per game"; reverse input is
+- Copy: the manual per-game input is labelled "Side A fair odds or best estimate per game"; reverse input is
   "Side A series odds".
 
 `src/utils/seriesOdds.js` (pure, tested):

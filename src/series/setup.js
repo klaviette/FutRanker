@@ -117,6 +117,32 @@ export function usePercentField(initial, min, max) {
   }
 }
 
+// A free-entry number box that keeps its last valid value while the draft is invalid.
+// `parse` returns the number, or null when the text isn't acceptable.
+export function useNumberField(initial, parse, errorText) {
+  const [value, setValue] = useState(initial)
+  const [draft, setDraft] = useState(String(initial))
+  const error = parse(draft) === null ? errorText : null
+  return {
+    value, draft, error,
+    change(text) {
+      setDraft(text)
+      const n = parse(text)
+      if (n !== null) setValue(n)
+    },
+    restore() { if (error) setDraft(String(value)) },
+  }
+}
+
+export const parseRating = text => {
+  const n = Number(text)
+  return text.trim() !== '' && Number.isFinite(n) ? n : null
+}
+export const parseCount = text => {
+  const n = Number(text)
+  return text.trim() !== '' && Number.isInteger(n) && n >= 0 ? n : null
+}
+
 export function pct(x) {
   return `${(x * 100).toFixed(1)}%`
 }

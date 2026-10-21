@@ -1,6 +1,8 @@
 import { useState, useMemo, useRef } from 'react'
 import { seriesOdds, seriesWinChance, solveGameChance } from '../utils/seriesOdds'
-import { useSeriesSetup, usePercentField, pct } from './setup'
+import { useSeriesSetup, usePercentField, useNumberField, parseRating, parseCount, pct } from './setup'
+import { eloWinChance, recordWinChance } from '../utils/gameEstimates'
+import GameOddsInput from './GameOddsInput'
 import { SetupFields, PercentField, AssumptionNote } from './SetupFields'
 import { SplitPanel, ChartPanel, BreakdownPanel } from './ResultPanels'
 import logo from '../assets/SeriesCalcLogo.png'
@@ -74,24 +76,57 @@ export default function SeriesOdds() {
 function ForwardTab() {
   const s = useSeriesSetup()
   const game = usePercentField(50, 1, 99)
+  const [source, setSource] = useState('manual')
+  const elo = {
+    a: useNumberField(1600, parseRating, 'Enter a rating.'),
+    b: useNumberField(1500, parseRating, 'Enter a rating.'),
+  }
+  const record = {
+    winsA: useNumberField(10, parseCount, 'Use a whole number, 0 or more.'),
+    lossesA: useNumberField(5, parseCount, 'Use a whole number, 0 or more.'),
+    winsB: useNumberField(8, parseCount, 'Use a whole number, 0 or more.'),
+    lossesB: useNumberField(7, parseCount, 'Use a whole number, 0 or more.'),
+  }
+
+  const p =
+    source === 'elo' ? eloWinChance(elo.a.value, elo.b.value)
+    : source === 'record' ? recordWinChance(record.winsA.value, record.lossesA.value, record.winsB.value, record.lossesB.value)
+    : game.value / 100
 
   const { pA, outcomes } = useMemo(
-    () => seriesOdds(s.target, s.winsA, s.winsB, game.value / 100, { winBy2: s.winBy2 }),
-    [s.target, s.winsA, s.winsB, s.winBy2, game.value]
+    () => seriesOdds(s.target, s.winsA, s.winsB, p, { winBy2: s.winBy2 }),
+    [s.target, s.winsA, s.winsB, s.winBy2, p]
   )
+
+  // Hand an estimate (or a chart click) over to the manual slider.
+  function setManual(gamePct) {
+    game.set(Math.min(99, Math.max(1, Math.round(gamePct * 10) / 10)))
+    setSource('manual')
+  }
 
   return (
     <div className="board">
       <section className="panel">
         <h2>Series setup</h2>
         <SetupFields setup={s} id="fwd" />
-        <PercentField id="fwd-game-pct" label={`${s.labelA} fair odds or best estimate per game`} field={game} />
+        <GameOddsInput
+          id="fwd"
+          source={source}
+          onSource={setSource}
+          game={game}
+          elo={elo}
+          record={record}
+          estimate={p}
+          labelA={s.labelA}
+          labelB={s.labelB}
+          onFineTune={() => setManual(p * 100)}
+        />
         <AssumptionNote />
       </section>
 
       <div className="col-right">
         <SplitPanel title="Series odds" meta={`${s.winsA}–${s.winsB} · ${s.formatMeta}`} labelA={s.labelA} labelB={s.labelB} pA={pA} />
-        <ChartPanel id="fwd-curve" setup={s} gamePct={game.value} onPick={game.set} />
+        <ChartPanel id="fwd-curve" setup={s} gamePct={p * 100} onPick={setManual} />
         <BreakdownPanel outcomes={outcomes} labelA={s.labelA} labelB={s.labelB} />
       </div>
     </div>

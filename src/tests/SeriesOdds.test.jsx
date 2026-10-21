@@ -60,3 +60,25 @@ describe('SeriesOdds reverse tab', () => {
     expect(within(screen.getByRole('tabpanel')).getByLabelText('Side A wins')).toHaveTextContent('1')
   })
 })
+
+describe('SeriesOdds per-game odds source', () => {
+  it('estimates per-game odds from Elo ratings', async () => {
+    render(<SeriesOdds />)
+    const panel = () => within(screen.getByRole('tabpanel'))
+    await userEvent.click(panel().getByRole('button', { name: 'Elo' }))
+    const a = panel().getByRole('spinbutton', { name: 'Side A Elo' })
+    const b = panel().getByRole('spinbutton', { name: 'Side B Elo' })
+    await userEvent.clear(a); await userEvent.type(a, '1900')
+    await userEvent.clear(b); await userEvent.type(b, '1500')
+    expect(panel().getByText('90.9%')).toBeInTheDocument()
+  })
+
+  it('hands a record estimate over to the manual slider', async () => {
+    render(<SeriesOdds />)
+    const panel = () => within(screen.getByRole('tabpanel'))
+    await userEvent.click(panel().getByRole('button', { name: 'Record' }))
+    await userEvent.click(panel().getByRole('button', { name: 'Fine-tune manually' }))
+    // Defaults 10–5 vs 8–7 → log5 ≈ 63.6%
+    expect(panel().getByRole('spinbutton', { name: /per game, percent/i })).toHaveValue(63.6)
+  })
+})
