@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import OddsCurve from './OddsCurve'
 import { pct } from './setup'
+import { marginAndTotals } from '../utils/seriesOdds'
 
 // Outcome bars share one fixed scale so they grow and shrink with the odds;
 // it only stretches when a single outcome is more likely than this.
@@ -94,6 +95,93 @@ export function BreakdownPanel({ outcomes, labelA, labelB }) {
           </li>
         ))}
       </ul>
+    </section>
+  )
+}
+
+// Lines hide once a side's chance drops below this, so long series stay readable.
+const LINE_FLOOR = 0.005
+const MAX_LINES = 12
+
+// Handicap and total-games lines, summed from the final score breakdown.
+export function LinesPanel({ outcomes, p, labelA, labelB }) {
+  const { margins, totals } = useMemo(() => marginAndTotals(outcomes, p), [outcomes, p])
+
+  // Chance a side wins by more than `line` games.
+  const covers = (side, line) => margins
+    .filter(m => (side === 'A' ? m.margin : -m.margin) > line)
+    .reduce((s, m) => s + m.prob, 0)
+
+  const spreads = []
+  for (let line = 1.5; spreads.length < MAX_LINES; line += 1) {
+    const a = covers('A', line)
+    const b = covers('B', line)
+    if (Math.max(a, b) < LINE_FLOOR) break
+    spreads.push({ line, a, b })
+  }
+
+  const overs = []
+  const lowest = totals.length ? totals[0].total : 0
+  for (let line = lowest - 0.5; overs.length < MAX_LINES; line += 1) {
+    const over = totals.filter(t => t.total > line).reduce((s, t) => s + t.prob, 0)
+    if (over < LINE_FLOOR) break
+    if (over <= 1 - LINE_FLOOR) overs.push({ line, over })
+  }
+
+  return (
+    <section className="panel">
+      <h2>
+        Lines
+        <span className="panel-meta">summed from the breakdown</span>
+      </h2>
+      <div className="so-lines">
+        <div>
+          <h3 className="so-section-title">Handicap (games)</h3>
+          {spreads.length ? (
+            <table className="so-lines-table">
+              <thead>
+                <tr><th scope="col">Line</th><th scope="col">{labelA}</th><th scope="col">{labelB}</th></tr>
+              </thead>
+              <tbody>
+                {spreads.map(s => (
+                  <tr key={`m${s.line}`}>
+                    <th scope="row">−{s.line}</th><td>{pct(s.a)}</td><td>{pct(s.b)}</td>
+                  </tr>
+                ))}
+                {spreads.map(s => (
+                  <tr key={`p${s.line}`}>
+                    <th scope="row">+{s.line}</th><td>{pct(1 - s.b)}</td><td>{pct(1 - s.a)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="so-hint">Only a one-game margin is possible from here.</p>
+          )}
+          <p className="so-hint">−1.5 means winning the series by 2 or more games; +1.5 means not losing by 2 or more.</p>
+        </div>
+
+        <div>
+          <h3 className="so-section-title">Total games</h3>
+          {overs.length ? (
+            <table className="so-lines-table">
+              <thead>
+                <tr><th scope="col">Line</th><th scope="col">Over</th><th scope="col">Under</th></tr>
+              </thead>
+              <tbody>
+                {overs.map(o => (
+                  <tr key={o.line}>
+                    <th scope="row">{o.line}</th><td>{pct(o.over)}</td><td>{pct(1 - o.over)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="so-hint">The number of games left is already settled.</p>
+          )}
+          <p className="so-hint">Counts every game in the series, including ones already played.</p>
+        </div>
+      </div>
     </section>
   )
 }

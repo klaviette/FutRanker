@@ -278,3 +278,30 @@
 
 /* Name sits right after its pencil so the edit affordance is next to the text */
 .so-name-wrap{ gap: 7px; }
+
+/* Percent field: slider + [− box +] */
+.so-pct-stepper{ display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.so-pct-stepper .rank-toggle{ font-size: 14px; line-height: 1; }
+.so-pct-stepper .rank-toggle:disabled{ opacity: 0.3; cursor: not-allowed; border-color: var(--border); color: var(--chalk-faint); }
+.so-pct-stepper .so-number--pct{ width: 76px; }
+
+/* Lines: handicap + total games */
+.so-lines{ display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 620px){ .so-lines{ grid-template-columns: 1fr; } }
+.so-lines .so-section-title{ margin-bottom: 10px; }
+.so-lines .so-hint{ margin-top: 10px; line-height: 1.5; }
+.so-lines-table{
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  font-size: 13px; font-variant-numeric: tabular-nums;
+}
+.so-lines-table th, .so-lines-table td{ padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--border); }
+.so-lines-table th:first-child{ text-align: left; }
+.so-lines-table thead th{
+  font: 500 10.5px 'IBM Plex Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--chalk-faint);
+  max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.so-lines-table tbody th{ font: 600 13px 'IBM Plex Mono', monospace; color: var(--chalk-dim); }
+.so-lines-table td{ font-family: 'IBM Plex Mono', monospace; color: var(--chalk); }
+.so-lines-table tbody tr:hover{ background: rgba(242,239,230,0.03); }
+.so-lines-table tbody tr:last-child th, .so-lines-table tbody tr:last-child td{ border-bottom: none; }

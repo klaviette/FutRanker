@@ -166,3 +166,28 @@ describe('SeriesOdds reverse odds source', () => {
     expect(panel().getByRole('spinbutton', { name: /series odds, percent/i })).toHaveValue(81)
   })
 })
+
+describe('SeriesOdds steppers and lines', () => {
+  it('steps the percent fields by one point within their limits', async () => {
+    render(<SeriesOdds />)
+    const panel = () => within(screen.getByRole('tabpanel'))
+    await userEvent.click(panel().getByRole('button', { name: /^Increase Side A fair odds/ }))
+    expect(panel().getByRole('spinbutton', { name: /per game, percent/i })).toHaveValue(51)
+    await userEvent.click(screen.getByRole('tab', { name: /reverse/i }))
+    const box = panel().getByRole('spinbutton', { name: /series odds, percent/i })
+    await userEvent.clear(box); await userEvent.type(box, '99.5')
+    const inc = panel().getByRole('button', { name: /^Increase Side A series odds/ })
+    await userEvent.click(inc)
+    expect(box).toHaveValue(99.9)
+    expect(inc).toBeDisabled()
+  })
+
+  it('shows handicap and total-games lines for an even best of 7', () => {
+    render(<SeriesOdds />)
+    const lines = within(screen.getByRole('tabpanel')).getByRole('heading', { name: /^Lines/ }).closest('section')
+    const row = name => within(within(lines).getByRole('rowheader', { name }).closest('tr')).getAllByRole('cell').map(c => c.textContent)
+    expect(row('−1.5')).toEqual(['34.4%', '34.4%'])
+    expect(row('+1.5')).toEqual(['65.6%', '65.6%'])
+    expect(row('5.5')).toEqual(['62.5%', '37.5%'])
+  })
+})

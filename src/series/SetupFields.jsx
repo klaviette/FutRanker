@@ -143,26 +143,47 @@ export function PercentField({ id, label, field: f }) {
           style={{ '--fill': `${((f.value - sliderMin) / (sliderMax - sliderMin)) * 100}%` }}
           onChange={e => f.set(Number(e.target.value))}
         />
-        <span className="so-pct-box">
-          <input
-            className={`so-number so-number--pct${f.error ? ' is-invalid' : ''}`}
-            type="number"
-            inputMode="decimal"
-            min={f.min}
-            max={f.max}
-            step="0.1"
-            value={f.draft}
-            aria-label={`${label}, percent`}
-            aria-invalid={Boolean(f.error)}
-            onChange={e => f.change(e.target.value)}
-            onBlur={f.restore}
-          />
-          <span className="so-pct-unit" aria-hidden="true">%</span>
-        </span>
+        <div className="so-pct-stepper">
+          <button
+            type="button"
+            className="rank-toggle"
+            aria-label={`Decrease ${label}`}
+            disabled={f.value <= f.min}
+            onClick={() => f.set(stepPercent(f, -1))}
+          >−</button>
+          <span className="so-pct-box">
+            <input
+              className={`so-number so-number--pct${f.error ? ' is-invalid' : ''}`}
+              type="number"
+              inputMode="decimal"
+              min={f.min}
+              max={f.max}
+              step="0.1"
+              value={f.draft}
+              aria-label={`${label}, percent`}
+              aria-invalid={Boolean(f.error)}
+              onChange={e => f.change(e.target.value)}
+              onBlur={f.restore}
+            />
+            <span className="so-pct-unit" aria-hidden="true">%</span>
+          </span>
+          <button
+            type="button"
+            className="rank-toggle"
+            aria-label={`Increase ${label}`}
+            disabled={f.value >= f.max}
+            onClick={() => f.set(stepPercent(f, 1))}
+          >+</button>
+        </div>
       </div>
       {f.error && <p className="so-hint so-hint--error">{f.error}</p>}
     </div>
   )
+}
+
+// One point up or down, kept to a tenth and within the field's range.
+function stepPercent(f, delta) {
+  return Math.min(f.max, Math.max(f.min, Math.round((f.value + delta) * 10) / 10))
 }
 
 export function AssumptionNote() {

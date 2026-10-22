@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { seriesOdds, seriesWinChance, solveGameChance, winsNeeded, isFinished } from '../utils/seriesOdds'
+import { seriesOdds, seriesWinChance, solveGameChance, marginAndTotals, winsNeeded, isFinished } from '../utils/seriesOdds'
 
 describe('seriesOdds', () => {
   it('computes wins needed for a best-of series', () => {
@@ -74,5 +74,26 @@ describe('solveGameChance', () => {
 
   it('gives 50% per game for 50% series odds from an even score', () => {
     expect(solveGameChance(4, 2, 2, 0.5)).toBeCloseTo(0.5, 9)
+  })
+})
+
+describe('marginAndTotals', () => {
+  it('gives known best-of-7 values at even odds', () => {
+    const { outcomes } = seriesOdds(4, 0, 0, 0.5)
+    const { margins, totals } = marginAndTotals(outcomes, 0.5)
+    const aBy2Plus = margins.filter(m => m.margin >= 2).reduce((s, m) => s + m.prob, 0)
+    expect(aBy2Plus).toBeCloseTo(0.34375) // 4–0, 4–1, 4–2
+    const over55 = totals.filter(t => t.total > 5.5).reduce((s, t) => s + t.prob, 0)
+    expect(over55).toBeCloseTo(0.625) // 6 or 7 games
+  })
+
+  it('accounts for every outcome, including unbounded extra games', () => {
+    for (const p of [0.2, 0.5, 0.8]) {
+      const { outcomes } = seriesOdds(4, 2, 1, p, { winBy2: true })
+      const { margins, totals } = marginAndTotals(outcomes, p)
+      expect(margins.reduce((s, m) => s + m.prob, 0)).toBeCloseTo(1, 9)
+      expect(totals.reduce((s, t) => s + t.prob, 0)).toBeCloseTo(1, 9)
+      expect(margins.every(m => Math.abs(m.margin) >= 2)).toBe(true)
+    }
   })
 })

@@ -108,3 +108,39 @@ export function solveGameChance(target, winsA, winsB, seriesChance, { winBy2 = f
   }
   return (lo + hi) / 2
 }
+
+// Margin and total-games distributions from seriesOdds outcomes, for handicap and
+// over/under lines. Margins are signed (positive = A wins by that many). Extra-game
+// outcomes (win by 2) always end with a 2-game margin; their total is geometric: from a
+// tie at k–k each pair of games ends it with chance p² + q², else it's tied again.
+// Returns { margins: [{ margin, prob }], totals: [{ total, prob }] } sorted ascending.
+export function marginAndTotals(outcomes, p) {
+  const q = 1 - p
+  const margins = new Map()
+  const totals = new Map()
+  const add = (map, key, prob) => map.set(key, (map.get(key) ?? 0) + prob)
+  const tieMass = new Map()
+
+  for (const o of outcomes) {
+    if (o.extraFrom === undefined) {
+      add(margins, o.a - o.b, o.prob)
+      add(totals, o.a + o.b, o.prob)
+    } else {
+      add(margins, o.winner === 'A' ? 2 : -2, o.prob)
+      add(tieMass, o.extraFrom, o.prob)
+    }
+  }
+
+  const decide = p * p + q * q // a pair of games ends it
+  const again = 2 * p * q // a pair of games ties it again
+  for (const [k, mass] of tieMass) {
+    let reach = mass
+    for (let j = 0; reach > 1e-13 && j < 1000; j++) {
+      add(totals, 2 * k + 2 + 2 * j, reach * decide)
+      reach *= again
+    }
+  }
+
+  const sorted = (map, key) => [...map].map(([k, prob]) => ({ [key]: k, prob })).sort((x, y) => x[key] - y[key])
+  return { margins: sorted(margins, 'margin'), totals: sorted(totals, 'total') }
+}

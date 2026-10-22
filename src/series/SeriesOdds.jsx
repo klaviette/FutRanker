@@ -3,7 +3,7 @@ import { seriesOdds, seriesWinChance, solveGameChance } from '../utils/seriesOdd
 import { useSeriesSetup, usePercentField, useOddsEstimate, pct } from './setup'
 import GameOddsInput from './GameOddsInput'
 import { SetupFields, PercentField, AssumptionNote } from './SetupFields'
-import { SplitPanel, ChartPanel, BreakdownPanel } from './ResultPanels'
+import { SplitPanel, ChartPanel, BreakdownPanel, LinesPanel } from './ResultPanels'
 import logo from '../assets/SeriesCalcLogo.png'
 
 const TABS = [
@@ -112,6 +112,7 @@ function ForwardTab({ s }) {
         <SplitPanel title="Series odds" meta={`${s.winsA}–${s.winsB} · ${s.formatMeta}`} labelA={s.labelA} labelB={s.labelB} pA={pA} />
         <ChartPanel id="fwd-curve" setup={s} gamePct={p * 100} onPick={setManual} />
         <BreakdownPanel outcomes={outcomes} labelA={s.labelA} labelB={s.labelB} />
+        <LinesPanel outcomes={outcomes} p={p} labelA={s.labelA} labelB={s.labelB} />
       </div>
     </div>
   )
@@ -177,6 +178,7 @@ function ReverseTab({ s }) {
         </p>
         <ChartPanel id="rev-curve" setup={s} gamePct={p * 100} onPick={pickFromChart} />
         <BreakdownPanel outcomes={outcomes} labelA={s.labelA} labelB={s.labelB} />
+        <LinesPanel outcomes={outcomes} p={p} labelA={s.labelA} labelB={s.labelB} />
       </div>
     </div>
   )

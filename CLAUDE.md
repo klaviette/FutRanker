@@ -103,7 +103,12 @@ Files:
   inputs are *not* saved. Every access is try/caught and invalid saved values fall back to defaults.
   Tests clear `localStorage` in `beforeEach` so saved state can't leak between them.
 - `ResultPanels.jsx` — `SplitPanel` (two big percentages + split bar), `ChartPanel`
-  (collapsible; unmounts the chart when closed), `BreakdownPanel` (every final score).
+  (collapsible; unmounts the chart when closed), `BreakdownPanel` (every final score), and
+  `LinesPanel` under it: **handicap** (−1.5/−2.5… = win the series by more than that many games,
+  +L = 1 − opponent's −L) and **total games** over/under (counts games already played). Built from
+  `marginAndTotals()`; lines below 0.5% are hidden, max 12 per table.
+- `PercentField` has −/+ `.rank-toggle` buttons around its box (±1 point, clamped to the field's
+  range, rounded to 0.1).
 - `OddsCurve.jsx` — SVG chart of series win % vs game win %. Measures its container with
   ResizeObserver and draws at real pixel width (so text doesn't scale). Hover tooltip; click sets odds.
 - `series.css` — page styles (`so-*` classes). Chart marks use `--series-a` `#C7801F` /
@@ -129,6 +134,9 @@ Rules / semantics:
 - `seriesOdds(...)` — forward pass over a Float64Array grid returning `{pA, pB, outcomes}`.
 - `solveGameChance(target, a, b, seriesChance, {winBy2})` — bisection (series odds are strictly
   increasing in p).
+- `marginAndTotals(outcomes, p)` — signed margin and total-games distributions from `seriesOdds`
+  outcomes. Extra-game (win-by-2) outcomes always have margin 2; their totals are geometric
+  (each pair of games ends it with p²+q²), summed until the tail is negligible.
 - Performance matters: an earlier Map/string-keyed version stuttered (~60ms per change at best of 99).
   Keep these array-based and avoid calling `seriesOdds` per chart point.
 
